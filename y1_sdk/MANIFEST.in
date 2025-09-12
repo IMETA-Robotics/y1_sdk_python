@@ -1,0 +1,7 @@
+# MANIFEST.in
+include README.md
+include LICENSE
+include y1_sdk_interface.cpp  # 添加这个！
+include lib/y1_sdk/y1_sdk_interface.h
+
+recursive-include y1_sdk/lib *.so

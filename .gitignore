@@ -1,0 +1,10 @@
+y1_sdk/build/
+y1_sdk/y1_sdk/y1_sdk.cpython-38-x86_64-linux-gnu.so
+y1_sdk/y1_sdk.egg-info
+
+y1_ros/build/
+y1_ros/devel/
+y1_ros/install/
+
+y1_ros/.catkin_workspace
+y1_ros/src/CMakeLists.txt
