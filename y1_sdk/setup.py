@@ -31,7 +31,7 @@ ext_modules = [
         libraries=[lib_name, 'glog'],  # 不带前缀 lib 和后缀 .so
         language="c++",
         extra_compile_args=["-O3", "-std=c++14"],
-        runtime_library_dirs=[lib_path],
+        runtime_library_dirs=["$ORIGIN/lib/x64", "$ORIGIN/lib/arm64"],
     )
 ]
 
