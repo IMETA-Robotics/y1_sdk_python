@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace imeta {
-namespace controller {
+namespace y1_controller {
 
 class Y1SDKInterface {
  public:
@@ -42,6 +42,9 @@ class Y1SDKInterface {
 
   /**
    * @brief the interface of all joint error code.
+   * 0: Disabled, 1: Enabled, 2: MotorDisconnected, 3: OverVoltage, 4:
+   * UnderVoltage 5: Overcurrent, 6: MosOverTemperature, 7:
+   * RotorOverTemperature, 8: Overload
    * @return 6 or 7(include gripper) joint error code.
    */
   std::vector<int> GetJointErrorCode();
@@ -83,30 +86,19 @@ class Y1SDKInterface {
   void SetArmControlMode(const ControlMode& mode);
 
   /**
-   * @brief set normal control arm joint position control command.
+   * @brief set normal control arm joint position and velocity ratio.
+   * @param arm_joint_position J1 - J6 joint position
+   * @param velocity_ratio range:[1, 10], default is 5, 1 is slower, 10 is
+   * faster.
    */
-  void SetArmJointPosition(const std::array<double, 6>& arm_joint_position);
-
-  /**
-   * @brief set normal control arm joint velocity control command.
-   */
-  void SetArmJointVelocity(double arm_joint_velocity);
-
-  /**
-   * @brief set normal control arm joint position and velocity control command.
-   */
-  void ControlArmJoint(const std::array<double, 6>& arm_joint_position,
-                       double velocity);
+  void SetArmJointPosition(const std::array<double, 6>& arm_joint_position,
+                           int velocity_ratio = 5);
 
   /**
    * @brief set follow arm joint position control command.
+   * @param arm_joint_position all joint position, include gripper
    */
   void SetArmJointPosition(const std::vector<double>& arm_joint_position);
-
-  /**
-   * @brief set follow arm joint velocity control command.
-   */
-  void SetArmJointVelocity(const std::vector<double>& arm_joint_velocity);
 
   /**
    * @brief set arm end pose control command. (x y z roll pitch yaw)
@@ -115,25 +107,21 @@ class Y1SDKInterface {
 
   /**
    * @brief set gripper stroke control command. Unit: mm
+   * @param gripper_stroke Unit: mm, range: [0, 80]
+   * @param velocity_ratio range:[1, 10], default is 5, 1 is slower, 10 is
+   * faster.
    */
-  void SetGripperStroke(double gripper_stroke);
+  void SetGripperStroke(double gripper_stroke, int velocity_ratio = 5);
 
   /**
-   * @brief set gripper stroke and velocity control command.
-   * @param gripper_stroke Unit: mm
-   * @param velocity Unit: rad/s
-   */
-  void ControlGripper(double gripper_stroke, double velocity);
-
-  /**
-   * @brief Enable or disable the motor of the robot arm.
-   * @param enable_arm true: enable the motor, false: disable the motor.
+   * @brief Enable or disable all joint motor.
+   * @param enable_arm true: enable, false: disable.
    */
   void SetEnableArm(bool enable_flag);
 
   /**
    * @brief Save J6 joint zero position.
-      Each time you reinstall the end flange adapter, you need to
+      Each time you reinstall the end flange adapter or gripper, you need to
    set the zero point of J6.
   */
   void SaveJ6ZeroPosition();
@@ -143,5 +131,5 @@ class Y1SDKInterface {
   std::unique_ptr<Impl> pimpl_;
 };
 
-}  // namespace controller
+}  // namespace y1_controller
 }  // namespace imeta

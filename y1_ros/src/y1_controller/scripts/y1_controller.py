@@ -9,7 +9,7 @@ class Y1Controller:
         rospy.init_node("y1_controller_node", anonymous=True)
 
         # ROS 参数
-        self.can_id = rospy.get_param("~arm_can_id", "can1")
+        self.can_id = rospy.get_param("~arm_can_id", "can0")
         self.arm_feedback_rate = rospy.get_param("~arm_feedback_rate", 200)
         self.arm_end_pose_control_topic = rospy.get_param(
             "~arm_end_pose_control_topic", "/y1/arm_end_pose_control"
@@ -90,20 +90,20 @@ class Y1Controller:
     def arm_end_pose_callback(self, msg: ArmEndPoseControl):
         arm_end_pose = list(msg.arm_end_pose[:6])
         self.y1_interface.SetArmEndPose(arm_end_pose)
-        self.y1_interface.SetGripperStroke(msg.gripper)
+        self.y1_interface.SetGripperStroke(msg.gripper_stroke, msg.gripper_velocity)
 
     def follow_arm_joint_callback(self, msg: ArmJointState):
-        if len(msg.joint_position) >= 6 and len(msg.joint_velocity) >= 6:
-            self.y1_interface.SetArmJointPosition(msg.joint_position)
-            self.y1_interface.SetArmJointVelocity(msg.joint_velocity)
+        if len(msg.joint_position) >= 6:
+            self.y1_interface.SetFollowerArmJointPosition(msg.joint_position)
         else:
             rospy.logerr("follow arm receive joint control size < 6")
 
     def arm_joint_position_callback(self, msg: ArmJointPositionControl):
-        arm_joint_position = list(msg.arm_joint_position[:6])
-        self.y1_interface.SetArmJointPosition(arm_joint_position)
-        self.y1_interface.SetArmJointVelocity(msg.arm_joint_velocity)
-        self.y1_interface.SetGripperStroke(msg.gripper)
+        # control J1 - J6 joint
+        arm_joint_position = list(msg.joint_position[:6])
+        self.y1_interface.SetArmJointPosition(arm_joint_position, msg.joint_velocity)
+        # control gripper
+        self.y1_interface.SetGripperStroke(msg.gripper_stroke, msg.gripper_velocity)
 
     def arm_information_timer_callback(self, event):
         # 发布关节状态
