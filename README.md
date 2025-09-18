@@ -51,3 +51,15 @@
   ```
 
 ### joint position control
+
+  ```sh
+  source devel/setup.bash
+  bash control_scripts/joint_position_control.sh
+  ```
+
+### go zero position
+
+  ```sh
+  source devel/setup.bash
+  bash control_scripts/go_zero_position.sh 
+  ```
