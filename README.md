@@ -5,7 +5,7 @@
 
   ```sh
   sudo apt update
-  sudo apt install can-utils net-tools iproute2 
+  sudo apt install can-utils net-tools iproute2 libgoogle-glog-dev
   sudo apt install ros-noetic-kdl-parser liborocos-kdl-dev ros-noetic-urdf ros-noetic-trac-ik
   ```
 

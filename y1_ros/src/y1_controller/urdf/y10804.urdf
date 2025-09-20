@@ -105,7 +105,7 @@
       lower="-3.0"
       upper="3.0"
       effort="30"
-      velocity="5" />
+      velocity="10" />
   </joint>
   <link
     name="Link2">
@@ -162,8 +162,8 @@
     <limit
       lower="-3.5"
       upper="0.2"
-      effort="100"
-      velocity="5" />
+      effort="120"
+      velocity="10" />
   </joint>
   <link
     name="Link3">
@@ -172,7 +172,7 @@
         xyz="0.126600 0.052219 0.001662"
         rpy="0 0 0" />
       <mass
-        value="0.86000" />
+        value="0.84000" />
       <inertia
         ixx="0.000921"
         ixy="-0.001028"
@@ -219,9 +219,9 @@
       xyz="0 0 1" />
     <limit
       lower="-0.2"
-      upper="4.1"
+      upper="3.5"
       effort="30"
-      velocity="5" />
+      velocity="10" />
   </joint>
   <link
     name="Link4">
@@ -230,7 +230,7 @@
         xyz="0.067326 0.059806 0.005043"
         rpy="0 0 0" />
       <mass
-        value="0.464000" />
+        value="0.444000" />
       <inertia
         ixx="0.000428"
         ixy="-0.000241"
@@ -278,8 +278,8 @@
     <limit
       lower="-2.5"
       upper="1.7"
-      effort="10"
-      velocity="20" />
+      effort="30"
+      velocity="10" />
   </joint>
   <link
     name="Link5">
@@ -336,8 +336,8 @@
     <limit
       lower="-2.0"
       upper="2.0"
-      effort="10"
-      velocity="20" />
+      effort="20"
+      velocity="30" />
   </joint>
   <link
     name="Link6">
@@ -346,7 +346,7 @@
         xyz="0.00034807 -9.6297E-08 0.0098368"
         rpy="0 0 0" />
       <mass
-        value="0.050469" />
+        value="0.016469" />
       <inertia
         ixx="0.000003"
         ixy="0.000000"
@@ -394,7 +394,7 @@
     <limit
       lower="-3.0"
       upper="3.0"
-      effort="10"
-      velocity="20" />
+      effort="20"
+      velocity="30" />
   </joint>
 </robot>

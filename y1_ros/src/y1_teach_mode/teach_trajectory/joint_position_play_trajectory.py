@@ -2,7 +2,7 @@
 
 import rospy
 import json
-from imeta_y1_msg.msg import ArmJointState
+from y1_msg.msg import ArmJointState
 
 def playback_trajectory(jsonl_file, control_pub):
     with open(jsonl_file, 'r') as f:
@@ -21,7 +21,6 @@ def playback_trajectory(jsonl_file, control_pub):
     msg = ArmJointState()
     msg.header.stamp = rospy.Time.now()
     msg.joint_position = data_lines[0]['position'][0:6]
-    msg.joint_velocity = data_lines[0]['velocity'][0:6]
     control_pub.publish(msg)
     rospy.loginfo("Publish start position, sleeping for 3 seconds go to start position.")
     rospy.sleep(3)  # 给机械臂3秒时间移动到位
@@ -30,7 +29,6 @@ def playback_trajectory(jsonl_file, control_pub):
     while not rospy.is_shutdown() and idx < data_len:
         msg.header.stamp = rospy.Time.now()
         msg.joint_position = data_lines[idx]['position'][0:6]
-        msg.joint_velocity = data_lines[idx]['velocity'][0:6]
 
         control_pub.publish(msg)
         idx += 1
@@ -40,7 +38,7 @@ def playback_trajectory(jsonl_file, control_pub):
 if __name__ == '__main__':
     rospy.init_node('play_trajectory', anonymous=True)
 
-    jsonl_file = "/home/zxf/IMETA_LAB/Y1/data/arm_state_400hz.jsonl"
+    jsonl_file = "/home/zxf/IMETA_LAB/y1_sdk_python/y1_ros/data/arm_state_400hz.jsonl"
     
     pub = rospy.Publisher('/master_arm_right/joint_states', ArmJointState, queue_size=1)
 

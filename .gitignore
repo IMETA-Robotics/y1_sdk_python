@@ -5,6 +5,7 @@ y1_sdk/y1_sdk.egg-info
 y1_ros/build/
 y1_ros/devel/
 y1_ros/install/
-
+y1_ros/data
+y1_ros/*bag
 y1_ros/.catkin_workspace
 y1_ros/src/CMakeLists.txt
