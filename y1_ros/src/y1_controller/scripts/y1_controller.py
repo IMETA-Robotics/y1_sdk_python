@@ -88,7 +88,7 @@ class Y1Controller:
 
     # ---------------- 回调函数 ----------------
     def arm_end_pose_callback(self, msg: ArmEndPoseControl):
-        arm_end_pose = list(msg.arm_end_pose[:6])
+        arm_end_pose = list(msg.end_pose[:6])
         self.y1_interface.SetArmEndPose(arm_end_pose)
         self.y1_interface.SetGripperStroke(msg.gripper_stroke, msg.gripper_velocity)
 

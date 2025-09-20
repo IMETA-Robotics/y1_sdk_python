@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     jsonl_file = "/home/zxf/IMETA_LAB/y1_sdk_python/y1_ros/data/arm_state_25hz.jsonl"
     
-    pub = rospy.Publisher('/y1/arm_end_pose_control', ArmEndPoseControl, queue_size=1)
+    pub = rospy.Publisher('/master_arm_right/end_pose_control', ArmEndPoseControl, queue_size=1)
 
     rospy.loginfo(f"Preparing to play trajectory from {jsonl_file}...")
     playback_trajectory(jsonl_file, pub)

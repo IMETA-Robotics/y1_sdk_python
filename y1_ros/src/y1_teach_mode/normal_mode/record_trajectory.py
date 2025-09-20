@@ -18,8 +18,8 @@ if __name__ == "__main__":
       print("No receive joint state data")
       exit()
 
-    rate = rospy.Rate(25)
-    with open("data/arm_state_25hz.jsonl", 'a') as f:
+    rate = rospy.Rate(10)
+    with open("data/arm_state_10hz.jsonl", 'a') as f:
         count = 1
         while not rospy.is_shutdown():
             data = {
