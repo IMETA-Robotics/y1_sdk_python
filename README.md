@@ -22,7 +22,7 @@
   ```
 
 ## 多臂设置参考一下飞书文档
-Refer [https://nxjux7a2aq.feishu.cn/wiki/MPQ4wPDiXi7fiYkM1NmcJssYnRc]
+Refer [Python SDK 和 ROS1使用说明](https://nxjux7a2aq.feishu.cn/wiki/MPQ4wPDiXi7fiYkM1NmcJssYnRc)
 
 ## Install y1_sdk(安装python sdk)
 
@@ -32,8 +32,8 @@ Refer [https://nxjux7a2aq.feishu.cn/wiki/MPQ4wPDiXi7fiYkM1NmcJssYnRc]
   ```
 
 ## Use y1_sdk(python sdk 接口使用示范)
-Refer to [y1_sdk/example/] python scripts.
-Refer to [y1_sdk/README.md].
+Refer to [y1_sdk/example/] (y1_sdk/example/)
+Refer to [y1_sdk/README.md](y1_sdk/README.md)
 
 ## Use y1_ros(基于python sdk封装的ros1, 推荐入门使用, 不再需要自己调用接口写程序)
 
@@ -106,16 +106,24 @@ Refer to [y1_sdk/README.md].
 ## 以下为单臂rostopic控制示例（双臂是分为两个话题，分别下发控制指令）
 ### joint position control
 
+#### go to joint position [0.6, -0.6, 0.6, 0.5, 0.4, 0]
   ```sh
   source devel/setup.bash
   bash control_scripts/joint_position_control.sh
   ```
 
-### go zero position
-
+#### go zero position [0, 0, 0, 0, 0, 0]
   ```sh
   source devel/setup.bash
   bash control_scripts/go_zero_position.sh 
+  ```
+
+### end pose control
+
+#### go to end pose [0.0535, -0.0476, 0.3963, -0.3829, -1.0915, 2.5349]
+  ```sh
+  source devel/setup.bash
+  bash control_scripts/end_pose_control.sh
   ```
 
 ## 话题数据类型说明 （详细变量含义请查看msg文件内注释）

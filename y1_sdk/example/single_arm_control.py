@@ -54,22 +54,22 @@ if __name__ == "__main__":
     # 注意: 因为机械臂本身没有控制器,SDK是在你的当前pc上运行的,所以当前程序如果结束,那么就不会再反馈关节信息和接受指令了
     
     # 关节位置控制
-    time.sleep(3)
     joint_position_control_flag = False
     if joint_position_control_flag:
+      time.sleep(3)
       joint_position_control = [0.6, -0.6, 0.6, 0.5, 0.4, 0]
-      joint_velocity_control = 3  # 关节执行速度幅度(1-10), 1为最慢, 10为最快, 可以不设置, 默认参数为5
-      single_control_arm.SetJointPosition(joint_position_control, joint_velocity_control)  # control J1 - J6 joint
+      joint_velocity_control = 10  # 关节执行速度幅度(1-10), 1为最慢, 10为最快, 可以不设置, 默认参数为5
+      single_control_arm.SetArmJointPosition(joint_position_control, joint_velocity_control)  # control J1 - J6 joint
       
       gripper_stroke = 10  # 夹爪行程(0-80mm)
       gripper_velocity = 3 # 夹爪执行速度幅度(1-10), 1为最慢, 10为最快, 可以不设置, 默认参数为5
       single_control_arm.SetGripperStroke(gripper_stroke, gripper_velocity)  # control gripper
     
     # 末端位姿控制
-    time.sleep(3)
-    end_pose_control_flag = False
+    end_pose_control_flag = True
     if end_pose_control_flag:
-      arm_end_pose_control = [0, 0, 0, 0, 0, 0]
+      time.sleep(3)
+      arm_end_pose_control = [0.0535, -0.0476, 0.3963, -0.3829, -1.0915, 2.5349]
       single_control_arm.SetArmEndPose(arm_end_pose_control)  # end pose control arm
       
       gripper_stroke = 10  # 夹爪行程(0-80mm)

@@ -69,11 +69,11 @@ if __name__ == "__main__":
         
         # 该模式运行速度特别快!!!! 建议只在主从摇操模式下, 接受主臂的关节位置来使用!!!!不要打开注释使用!!!!
         # 发送关节位置控制
-        # joint_position_control = [0, 0, 0, 0, 0, 0, 0]  # 前6位为J1 - J6的关节位置控制, 最后一位为夹爪量程(0-80mm)
+        # joint_position_control = [0.6, -0.6, 0.6, 0.5, 0.4, 0]  # 前6位为J1 - J6的关节位置控制, 最后一位为夹爪量程(0-80mm)
         # slave_arm.SetFollowerArmJointPosition(joint_position_control)
         
         # 发送末端位姿控制
-        # arm_end_pose_control = [0, 0, 0, 0, 0, 0]
+        # arm_end_pose_control = [0.0535, -0.0476, 0.3963, -0.3829, -1.0915, 2.5349]
         # slave_arm.SetArmEndPose(arm_end_pose_control)
         # slave_arm.SetGripperStroke(gripper_stroke, gripper_velocity)  # 设置夹爪量程和执行速度
         
