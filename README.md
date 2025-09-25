@@ -24,14 +24,18 @@
 ## 多臂设置参考一下飞书文档
 Refer [https://nxjux7a2aq.feishu.cn/wiki/MPQ4wPDiXi7fiYkM1NmcJssYnRc]
 
-## Install y1_sdk
+## Install y1_sdk(安装python sdk)
 
   ```sh
   cd y1_sdk/
   pip install .
   ```
 
-## Use y1_ros
+## Use y1_sdk(python sdk 接口使用示范)
+Refer to [y1_sdk/example/] python scripts.
+Refer to [y1_sdk/README.md].
+
+## Use y1_ros(基于python sdk封装的ros1, 推荐入门使用, 不再需要自己调用接口写程序)
 
 ### build
   ```sh
