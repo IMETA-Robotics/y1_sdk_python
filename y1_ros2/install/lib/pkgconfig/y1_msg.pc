@@ -1,0 +1,8 @@
+prefix=/home/ubuntu/IMETA_LAB/y1_sdk_python/y1_ros/install
+
+Name: y1_msg
+Description: Description of y1_msg
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: 

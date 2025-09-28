@@ -1,11 +1,11 @@
 # Software Dependency
 
-  - Ubuntu 20.04 LTS
-  - ROS Noetic
+  - Ubuntu 22.04 LTS
+  - ROS Humble
 
   ```sh
   sudo apt update
-  sudo apt install can-utils net-tools iproute2 libgoogle-glog-dev
+  sudo apt install can-utils net-tools iproute2 libgoogle-glog-dev libnlopt-cxx-dev 
   sudo apt install ros-noetic-kdl-parser liborocos-kdl-dev ros-noetic-urdf ros-noetic-trac-ik
   ```
 
@@ -35,7 +35,7 @@ Refer [https://nxjux7a2aq.feishu.cn/wiki/MPQ4wPDiXi7fiYkM1NmcJssYnRc]
 Refer to [y1_sdk/example/] python scripts.
 Refer to [y1_sdk/README.md].
 
-## Use y1_ros(基于python sdk封装的ros1, 推荐入门使用, 不再需要自己调用接口写程序)
+## Use y1_ros2(基于python sdk封装的ros2, 推荐入门使用, 不再需要自己调用接口写程序)
 
 ### build
   ```sh

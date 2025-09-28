@@ -1,0 +1,13 @@
+(cl:defpackage y1_msg-msg
+  (:use )
+  (:export
+   "<ARMENDPOSECONTROL>"
+   "ARMENDPOSECONTROL"
+   "<ARMJOINTPOSITIONCONTROL>"
+   "ARMJOINTPOSITIONCONTROL"
+   "<ARMJOINTSTATE>"
+   "ARMJOINTSTATE"
+   "<ARMSTATUS>"
+   "ARMSTATUS"
+  ))
+

@@ -1,0 +1,2 @@
+y1_controller:y1_msg
+-DCATKIN_DEVEL_PREFIX=/home/ubuntu/IMETA_LAB/y1_sdk_python/y1_ros/devel -DCMAKE_INSTALL_PREFIX=/home/ubuntu/IMETA_LAB/y1_sdk_python/y1_ros/install -DCATKIN_WHITELIST_PACKAGES=y1_controller;y1_msg -G Unix Makefiles
