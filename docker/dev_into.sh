@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEV_CONTAINER="y1_sdk_ubuntu22_04"
+DEV_CONTAINER="y1_ros2"
 
 function restart_stopped_container {
     if docker ps -f status=exited -f name="${DEV_CONTAINER}" | grep "${DEV_CONTAINER}"; then

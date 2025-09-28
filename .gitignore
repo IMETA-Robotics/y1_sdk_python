@@ -3,10 +3,11 @@ y1_sdk/y1_sdk/y1_sdk.cpython-38-x86_64-linux-gnu.so
 y1_sdk/y1_sdk.egg-info
 y1_sdk/y1_sdk/__pycache__
 
-y1_ros/build/
-y1_ros/devel/
-y1_ros/install/
-y1_ros/data
-y1_ros/*bag
-y1_ros/.catkin_workspace
-y1_ros/src/CMakeLists.txt
+y1_ros2/build/
+y1_ros2/devel/
+y1_ros2/install/
+y1_ros2/data/
+y1_ros2/log/
+y1_ros2/*bag
+y1_ros2/.catkin_workspace
+y1_ros2/src/CMakeLists.txt

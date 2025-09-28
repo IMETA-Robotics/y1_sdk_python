@@ -1,47 +1,63 @@
 #!/usr/bin/env python3
-import rospy, rospkg
+import rclpy
+from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
+
 from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl
 from std_msgs.msg import String
 from y1_sdk import Y1SDKInterface, ControlMode
 
-class Y1Controller:
+import os
+from ament_index_python.packages import get_package_share_directory
+
+
+class Y1Controller(Node):
     def __init__(self):
-        rospy.init_node("y1_controller_node", anonymous=True)
+        super().__init__("y1_controller_node")
+        
+        # ROS 2 参数声明和获取
+        self.declare_parameter("arm_can_id", "can0")
+        self.declare_parameter("arm_feedback_rate", 200)
+        self.declare_parameter("arm_end_pose_control_topic", "/y1/arm_end_pose_control")
+        self.declare_parameter("arm_joint_position_control_topic", "/y1/arm_joint_position_control_topic")
+        self.declare_parameter("arm_joint_state_topic", "/y1/arm_joint_state")
+        self.declare_parameter("arm_status_topic", "/y1/arm_status")
+        self.declare_parameter("arm_control_type", "follower_arm")
+        self.declare_parameter("arm_end_type", 0)
+        self.declare_parameter("auto_enable", True)
 
-        # ROS 参数
-        self.can_id = rospy.get_param("~arm_can_id", "can0")
-        self.arm_feedback_rate = rospy.get_param("~arm_feedback_rate", 200)
-        self.arm_end_pose_control_topic = rospy.get_param(
-            "~arm_end_pose_control_topic", "/y1/arm_end_pose_control"
-        )
-        self.arm_joint_position_control_topic = rospy.get_param(
-            "~arm_joint_position_control_topic", "/y1/arm_joint_position_control_topic"
-        )
-        self.arm_joint_state_topic = rospy.get_param(
-            "~arm_joint_state_topic", "/y1/arm_joint_state"
-        )
-        self.arm_status_topic = rospy.get_param(
-            "~arm_status_topic", "/y1/arm_status"
-        )
-        self.arm_control_type = rospy.get_param("~arm_control_type", "follower_arm")
-        self.arm_end_type = rospy.get_param("~arm_end_type", 0)
-        self.auto_enable = rospy.get_param("~auto_enable", True)
+        self.can_id = self.get_parameter("arm_can_id").value
+        self.arm_feedback_rate = self.get_parameter("arm_feedback_rate").value
+        self.arm_end_pose_control_topic = self.get_parameter("arm_end_pose_control_topic").value
+        self.arm_joint_position_control_topic = self.get_parameter("arm_joint_position_control_topic").value
+        self.arm_joint_state_topic = self.get_parameter("arm_joint_state_topic").value
+        self.arm_status_topic = self.get_parameter("arm_status_topic").value
+        self.arm_control_type = self.get_parameter("arm_control_type").value
+        self.arm_end_type = self.get_parameter("arm_end_type").value
+        self.auto_enable = self.get_parameter("auto_enable").value
 
-        # URDF路径
-        rospack = rospkg.RosPack()
-        package_path = rospack.get_path("y1_controller")
+        # URDF路径 - ROS2方式
+        package_name = "y1_controller"
+        package_share_dir = get_package_share_directory(package_name)
 
-        if self.arm_end_type == 0:
-            urdf_path = f"{package_path}/urdf/y10804.urdf"
-        elif self.arm_end_type == 1:
-            urdf_path = f"{package_path}/urdf/y1_gripper_t.urdf"
-        elif self.arm_end_type == 2:
-            urdf_path = f"{package_path}/urdf/y1_gripper_g.urdf"
-        elif self.arm_end_type == 3:
-            urdf_path = f"{package_path}/urdf/y10824_ee.urdf"
-        else:
-            rospy.logerr(f"arm_end_type {self.arm_end_type} not supported")
+        urdf_files = {
+            0: "y10804.urdf",
+            1: "y1_gripper_t.urdf", 
+            2: "y1_gripper_g.urdf",
+            3: "y10824_ee.urdf"
+        }
+
+        if self.arm_end_type not in urdf_files:
+            self.get_logger().error(f"arm_end_type {self.arm_end_type} not supported")
             raise RuntimeError("Unsupported arm_end_type")
+
+        urdf_filename = urdf_files[self.arm_end_type]
+        urdf_path = os.path.join(package_share_dir, "urdf", urdf_filename)
+
+        if not os.path.exists(urdf_path):
+            self.get_logger().error(f"URDF file not found: {urdf_path}")
+            raise RuntimeError(f"URDF file not found: {urdf_path}")
 
         # 初始化 Y1 SDK
         self.y1_interface = Y1SDKInterface(
@@ -51,40 +67,68 @@ class Y1Controller:
             enable_arm=self.auto_enable,
         )
         if not self.y1_interface.Init():
-            rospy.logerr("Init Y1 SDK Interface failed")
+            self.get_logger().error("Init Y1 SDK Interface failed")
             raise RuntimeError("Y1 SDK Init failed")
+
+        # QoS配置
+        qos_profile = QoSProfile(
+            depth=10,
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.VOLATILE
+        )
 
         # 设置控制模式
         if self.arm_control_type == "leader_arm":
             self.y1_interface.SetArmControlMode(ControlMode.GRAVITY_COMPENSATION)
         elif self.arm_control_type == "follower_arm":
             self.y1_interface.SetArmControlMode(ControlMode.RT_JOINT_POSITION)
-            self.arm_end_pose_sub = rospy.Subscriber(
-                self.arm_end_pose_control_topic, ArmEndPoseControl, self.arm_end_pose_callback
+            self.arm_end_pose_sub = self.create_subscription(
+                ArmEndPoseControl, 
+                self.arm_end_pose_control_topic, 
+                self.arm_end_pose_callback, 
+                qos_profile
             )
-            self.arm_joint_pos_sub = rospy.Subscriber(
-                self.arm_joint_position_control_topic, ArmJointState, self.follow_arm_joint_callback
+            self.arm_joint_pos_sub = self.create_subscription(
+                ArmJointState, 
+                self.arm_joint_position_control_topic, 
+                self.follow_arm_joint_callback, 
+                qos_profile
             )
         elif self.arm_control_type == "normal_arm":
             self.y1_interface.SetArmControlMode(ControlMode.NRT_JOINT_POSITION)
-            self.arm_end_pose_sub = rospy.Subscriber(
-                self.arm_end_pose_control_topic, ArmEndPoseControl, self.arm_end_pose_callback
+            self.arm_end_pose_sub = self.create_subscription(
+                ArmEndPoseControl, 
+                self.arm_end_pose_control_topic, 
+                self.arm_end_pose_callback, 
+                qos_profile
             )
-            self.arm_joint_pos_sub = rospy.Subscriber(
-                self.arm_joint_position_control_topic, ArmJointPositionControl, self.arm_joint_position_callback
+            self.arm_joint_pos_sub = self.create_subscription(
+                ArmJointPositionControl, 
+                self.arm_joint_position_control_topic, 
+                self.arm_joint_position_callback, 
+                qos_profile
             )
         else:
-            rospy.logerr(f"arm_control_type {self.arm_control_type} not supported")
+            self.get_logger().error(f"arm_control_type {self.arm_control_type} not supported")
             raise RuntimeError("Unsupported arm_control_type")
 
         # 发布器
-        self.arm_joint_state_pub = rospy.Publisher(self.arm_joint_state_topic, ArmJointState, queue_size=1)
-        self.arm_status_pub = rospy.Publisher(self.arm_status_topic, ArmStatus, queue_size=1)
+        self.arm_joint_state_pub = self.create_publisher(
+            ArmJointState, 
+            self.arm_joint_state_topic, 
+            qos_profile
+        )
+        self.arm_status_pub = self.create_publisher(
+            ArmStatus, 
+            self.arm_status_topic, 
+            qos_profile
+        )
 
-        # 定时器
-        self.timer = rospy.Timer(rospy.Duration(1.0 / self.arm_feedback_rate), self.arm_information_timer_callback)
+        # 定时器 - ROS2方式
+        timer_period = 1.0 / self.arm_feedback_rate
+        self.timer = self.create_timer(timer_period, self.arm_information_timer_callback)
 
-        rospy.loginfo("Y1 Controller initialized successfully!")
+        self.get_logger().info("Y1 Controller initialized successfully!")
 
     # ---------------- 回调函数 ----------------
     def arm_end_pose_callback(self, msg: ArmEndPoseControl):
@@ -96,7 +140,7 @@ class Y1Controller:
         if len(msg.joint_position) >= 6:
             self.y1_interface.SetFollowerArmJointPosition(msg.joint_position)
         else:
-            rospy.logerr("follow arm receive joint control size < 6")
+            self.get_logger().error("follow arm receive joint control size < 6")
 
     def arm_joint_position_callback(self, msg: ArmJointPositionControl):
         # control J1 - J6 joint
@@ -105,10 +149,10 @@ class Y1Controller:
         # control gripper
         self.y1_interface.SetGripperStroke(msg.gripper_stroke, msg.gripper_velocity)
 
-    def arm_information_timer_callback(self, event):
+    def arm_information_timer_callback(self):
         # 发布关节状态
         arm_joint_state = ArmJointState()
-        arm_joint_state.header.stamp = rospy.Time.now()
+        arm_joint_state.header.stamp = self.get_clock().now().to_msg()
 
         arm_end_pose = self.y1_interface.GetArmEndPose()
         joint_position = self.y1_interface.GetJointPosition()
@@ -122,13 +166,14 @@ class Y1Controller:
 
         # 发布电机状态
         arm_status = ArmStatus()
-        arm_status.header.stamp = rospy.Time.now()
+        arm_status.header.stamp = self.get_clock().now().to_msg()
         joint_names = self.y1_interface.GetJointNames()
         motor_current = self.y1_interface.GetMotorCurrent()
         rotor_temperature = self.y1_interface.GetRotorTemperature()
         joint_error_code = self.y1_interface.GetJointErrorCode()
 
-        arm_status.name = [String(data=n) for n in joint_names]
+        # ROS2中String数组的处理
+        arm_status.name = [String(data=str(n)) for n in joint_names]
         arm_status.motor_current = motor_current + [sum(motor_current)]
         arm_status.rotor_temperature = rotor_temperature
         arm_status.error_code = joint_error_code
@@ -137,9 +182,18 @@ class Y1Controller:
         self.arm_status_pub.publish(arm_status)
 
 
-if __name__ == "__main__":
+def main(args=None):
+    rclpy.init(args=args)
+    
     try:
         controller = Y1Controller()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        pass
+        rclpy.spin(controller)
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        controller.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()

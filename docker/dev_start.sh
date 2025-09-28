@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEV_CONTAINER="y1_sdk_ubuntu22_04"
+DEV_CONTAINER="y1_ros2"
 
 function remove_container_if_exists() {
 	local container="$1"
@@ -16,21 +16,20 @@ if ! [[ -x "$(command -v docker)" ]]; then
 	exit 1
 fi
 
-docker build -t y1_sdk_ubuntu22_04 "$(pwd)/docker"
+docker build -t y1_ros2 "$(pwd)/docker"
 
-echo "Remove existing y1_sdk_ubuntu22_04 container ..."
+echo "Remove existing y1_ros2 container ..."
 remove_container_if_exists ${DEV_CONTAINER}
 
 docker run -itd \
-		--name y1_sdk_ubuntu22_04 \
+		--name y1_ros2 \
 		--user=$(id -u $USER):$(id -g $USER) \
 		--network=host \
-		--gpus=all \
 		--privileged \
-		--workdir "/home/$USER/y1_sdk_ubuntu22_04" \
+		--workdir "/home/$USER/y1_sdk_python" \
 		--env="QT_X11_NO_MITSHM=1" \
 		--env="DISPLAY" \
-		--volume=$(pwd):"/home/$USER/y1_sdk_ubuntu22_04" \
+		--volume=$(pwd):"/home/$USER/y1_sdk_python" \
 		--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 		--volume="/etc/group:/etc/group:ro" \
 		--volume="/etc/passwd:/etc/passwd:ro" \
@@ -38,9 +37,9 @@ docker run -itd \
 		--volume="/etc/sudoers.d:/etc/sudoers.d:ro" \
 		--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 		--volume="/dev:/dev" \
-		y1_sdk_ubuntu22_04:latest
+		y1_ros2:latest
 
 echo "Congratulations! You have successfully finished setting up ros2 humble Dev Environment."
-echo "To login into the newly created y1_sdk_ubuntu22_04 container, please run the following command:"
+echo "To login into the newly created y1_sdk_python container, please run the following command:"
 echo "bash docker/dev_into.sh"
 echo "Enjoy!"
