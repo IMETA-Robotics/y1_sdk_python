@@ -1,8 +1,0 @@
-prefix=/home/ubuntu/IMETA_LAB/y1_sdk_python/y1_ros/devel
-
-Name: y1_description
-Description: Description of y1_description
-Version: 1.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

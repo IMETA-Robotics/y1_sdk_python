@@ -9,7 +9,7 @@ find_package(std_msgs REQUIRED)
 find_package(y1_msg REQUIRED)
 
 # 安装 Python 包
-ament_python_install_package(${PROJECT_NAME})
+# ament_python_install_package(${PROJECT_NAME})
 
 # 安装 Python 可执行脚本
 install(PROGRAMS

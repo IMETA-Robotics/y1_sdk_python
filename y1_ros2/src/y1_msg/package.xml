@@ -3,7 +3,7 @@
 <package format="3">
   <name>y1_msg</name>
   <version>0.0.0</version>
-  <description>ros message for y1 arm in ros</description>
+  <description>ros message for y1 arm in ros2</description>
   
   <maintainer email="601081321@qq.com">xiaofan zhang</maintainer>
   <license>Business</license>

@@ -7,6 +7,7 @@
   sudo apt update
   sudo apt install can-utils net-tools iproute2 libgoogle-glog-dev libnlopt-cxx-dev 
   sudo apt install ros-humble-kdl-parser liborocos-kdl-dev 
+  sudo apt install ros-humble-joint-state-publisher-gui 
   ```
 
 ## Set single arm Can
