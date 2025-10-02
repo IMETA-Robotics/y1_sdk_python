@@ -19,7 +19,7 @@ can_id = "can0"
 # 使能 or 失能
 auto_enable = True
 # 0: nothing, 1: gripper, 2: teaching pendant, 3: gripper and teaching pendant
-arm_end_type = 3
+arm_end_type = 0
 
 if arm_end_type == 0:
     urdf_path = os.path.join(HERE, "urdf", "y10804.urdf")
