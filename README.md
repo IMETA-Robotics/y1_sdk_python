@@ -6,8 +6,7 @@
   ```sh
   sudo apt update
   sudo apt install can-utils net-tools iproute2 libgoogle-glog-dev libnlopt-cxx-dev 
-  sudo apt install ros-humble-kdl-parser liborocos-kdl-dev 
-  sudo apt install ros-humble-joint-state-publisher-gui 
+  sudo apt install ros-humble-kdl-parser liborocos-kdl-dev ros-humble-joint-state-publisher-gui
   ```
 
 ## Set single arm Can
@@ -107,16 +106,25 @@ Refer to [y1_sdk/README.md].
 ## 以下为单臂rostopic控制示例（双臂是分为两个话题，分别下发控制指令）
 ### joint position control
 
+#### go to joint position [0.6, -0.6, 0.6, 0.5, 0.4, 0]
   ```sh
   source install/setup.bash
   bash control_scripts/joint_position_control.sh
   ```
 
-### go zero position
+#### go zero position [0, 0, 0, 0, 0, 0]
 
   ```sh
   source install/setup.bash
   bash control_scripts/go_zero_position.sh 
+  ```
+
+### end pose control
+
+#### go to end pose [0.0535, -0.0476, 0.3963, -0.3829, -1.0915, 2.5349]
+  ```sh
+  source install/setup.bash
+  bash control_scripts/end_pose_control.sh
   ```
 
 ## 话题数据类型说明 （详细变量含义请查看msg文件内注释）

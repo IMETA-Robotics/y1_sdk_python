@@ -9,7 +9,7 @@ params_file = os.path.join(
 
 arm_node = Node(
     package='y1_controller',
-    executable='y1_controller.py',
+    executable='y1_controller',
     name='right_normal_arm',
     output='screen',
     parameters=[params_file]

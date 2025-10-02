@@ -11,7 +11,6 @@ from y1_sdk import Y1SDKInterface, ControlMode
 import os
 from ament_index_python.packages import get_package_share_directory
 
-
 class Y1Controller(Node):
     def __init__(self):
         super().__init__("y1_controller_node")
@@ -184,15 +183,13 @@ class Y1Controller(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    
+    controller = Y1Controller()
     try:
-        controller = Y1Controller()
         rclpy.spin(controller)
-    except Exception as e:
-        print(f"Error: {e}")
+    except KeyboardInterrupt:
+        pass
     finally:
         controller.destroy_node()
-        rclpy.shutdown()
 
 
 if __name__ == "__main__":
