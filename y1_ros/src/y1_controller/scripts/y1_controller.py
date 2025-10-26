@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import rospy, rospkg
 from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl
+from sensor_msgs.msg import JointState
 from std_msgs.msg import String
 from y1_sdk import Y1SDKInterface, ControlMode
 
@@ -23,6 +24,10 @@ class Y1Controller:
         self.arm_status_topic = rospy.get_param(
             "~arm_status_topic", "/y1/arm_status"
         )
+        self.sim_joint_postion_control_topic = rospy.get_param(
+            "~sim_joint_postion_control_topic", "/joint_states"
+        )
+        self.is_sim = rospy.get_param("~is_sim", False)
         self.arm_control_type = rospy.get_param("~arm_control_type", "follower_arm")
         self.arm_end_type = rospy.get_param("~arm_end_type", 0)
         self.auto_enable = rospy.get_param("~auto_enable", True)
@@ -73,6 +78,10 @@ class Y1Controller:
             self.arm_joint_pos_sub = rospy.Subscriber(
                 self.arm_joint_position_control_topic, ArmJointPositionControl, self.arm_joint_position_callback
             )
+            if self.is_sim:
+                self.arm_joint_pos_sub = rospy.Subscriber(
+                   self.sim_joint_postion_control_topic, JointState, self.sim_joint_position_callback
+                )
         else:
             rospy.logerr(f"arm_control_type {self.arm_control_type} not supported")
             raise RuntimeError("Unsupported arm_control_type")
@@ -104,6 +113,14 @@ class Y1Controller:
         self.y1_interface.SetArmJointPosition(arm_joint_position, msg.joint_velocity)
         # control gripper
         self.y1_interface.SetGripperStroke(msg.gripper_stroke, msg.gripper_velocity)
+
+    def sim_joint_position_callback(self, msg: JointState):
+        # control J1 - J6 joint
+        arm_joint_position = list(msg.position[:6])
+        self.y1_interface.SetArmJointPosition(arm_joint_position, 6)
+        # control gripper
+        if len(msg.position) >= 7:
+            self.y1_interface.SetGripperStroke(-msg.position[6] * 2000, 6)
 
     def arm_information_timer_callback(self, event):
         # 发布关节状态
