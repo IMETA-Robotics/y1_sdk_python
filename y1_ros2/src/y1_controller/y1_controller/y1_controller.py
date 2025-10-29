@@ -41,10 +41,10 @@ class Y1Controller(Node):
         package_share_dir = get_package_share_directory(package_name)
 
         urdf_files = {
-            0: "y10804.urdf",
-            1: "y1_gripper_t.urdf", 
-            2: "y1_gripper_g.urdf",
-            3: "y10824_ee.urdf"
+            0: "y1_no_gripper.urdf",
+            1: "y1_with_gripper.urdf", 
+            2: "y1_with_gripper.urdf",
+            3: "y1_with_gripper.urdf"
         }
 
         if self.arm_end_type not in urdf_files:
