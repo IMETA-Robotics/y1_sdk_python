@@ -21,13 +21,13 @@ auto_enable = True
 arm_end_type = 0
 
 if arm_end_type == 0:
-    urdf_path = os.path.join(HERE, "urdf", "y10804.urdf")
+    urdf_path = os.path.join(HERE, "urdf", "y1_no_gripper.urdf")
 elif arm_end_type == 1:
-  urdf_path = os.path.join(HERE, "urdf", "y1_gripper_g.urdf")
+  urdf_path = os.path.join(HERE, "urdf", "y1_with_gripper.urdf")
 elif arm_end_type == 2:
-  urdf_path = os.path.join(HERE, "urdf", "y1_gripper_t.urdf")
+  urdf_path = os.path.join(HERE, "urdf", "y1_with_gripper.urdf")
 elif arm_end_type == 3:
-  urdf_path = os.path.join(HERE, "urdf", "y10824_ee.urdf")
+  urdf_path = os.path.join(HERE, "urdf", "y1_with_gripper.urdf")
 else:
     print(f"arm_end_type {arm_end_type} not supported")
     raise RuntimeError("Unsupported arm_end_type") 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     time.sleep(3)
     end_pose_control_flag = False
     if end_pose_control_flag:
-      arm_end_pose_control = [0.0535, -0.0476, 0.3963, -0.3829, -1.0915, 2.5349]
+      arm_end_pose_control = [0.0535, -0.0476, 0.3963, 0.1990, -0.4414, -1.0352]
       right_arm.SetArmEndPose(arm_end_pose_control)  # end pose control arm
       
       gripper_stroke = 10  # 夹爪行程(0-80mm)

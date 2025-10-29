@@ -4,9 +4,9 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 
-from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl
+from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl, MitControlMode
 from std_msgs.msg import String
-from y1_sdk import Y1SDKInterface, ControlMode
+from y1_sdk import Y1SDKInterface, ControlMode, MitControlCommand
 
 import os
 from ament_index_python.packages import get_package_share_directory
@@ -18,16 +18,18 @@ class Y1Controller(Node):
         # ROS 2 参数声明和获取
         self.declare_parameter("arm_can_id", "can0")
         self.declare_parameter("arm_feedback_rate", 200)
+        self.declare_parameter("mit_control_topic", "/y1/mit_control")
         self.declare_parameter("arm_end_pose_control_topic", "/y1/arm_end_pose_control")
         self.declare_parameter("arm_joint_position_control_topic", "/y1/arm_joint_position_control_topic")
         self.declare_parameter("arm_joint_state_topic", "/y1/arm_joint_state")
         self.declare_parameter("arm_status_topic", "/y1/arm_status")
-        self.declare_parameter("arm_control_type", "follower_arm")
+        self.declare_parameter("arm_control_type", "normal_arm")
         self.declare_parameter("arm_end_type", 0)
         self.declare_parameter("auto_enable", True)
 
         self.can_id = self.get_parameter("arm_can_id").value
         self.arm_feedback_rate = self.get_parameter("arm_feedback_rate").value
+        self.mit_control_topic = self.get_parameter("mit_control_topic").value
         self.arm_end_pose_control_topic = self.get_parameter("arm_end_pose_control_topic").value
         self.arm_joint_position_control_topic = self.get_parameter("arm_joint_position_control_topic").value
         self.arm_joint_state_topic = self.get_parameter("arm_joint_state_topic").value
@@ -41,10 +43,10 @@ class Y1Controller(Node):
         package_share_dir = get_package_share_directory(package_name)
 
         urdf_files = {
-            0: "y10804.urdf",
-            1: "y1_gripper_t.urdf", 
-            2: "y1_gripper_g.urdf",
-            3: "y10824_ee.urdf"
+            0: "y1_no_gripper.urdf",
+            1: "y1_with_gripper.urdf",
+            2: "y1_with_gripper.urdf", 
+            3: "y1_with_gripper.urdf"
         }
 
         if self.arm_end_type not in urdf_files:
@@ -107,6 +109,14 @@ class Y1Controller(Node):
                 self.arm_joint_position_callback, 
                 qos_profile
             )
+        elif self.arm_control_type == "mit_control_mode":
+            self.y1_interface.SetArmControlMode(ControlMode.MIT_CONTROL)
+            self.mit_control_sub = self.create_subscription(
+                MitControlMode,
+                self.mit_control_topic,
+                self.mit_control_callback,
+                qos_profile
+            )
         else:
             self.get_logger().error(f"arm_control_type {self.arm_control_type} not supported")
             raise RuntimeError("Unsupported arm_control_type")
@@ -147,6 +157,31 @@ class Y1Controller(Node):
         self.y1_interface.SetArmJointPosition(arm_joint_position, msg.joint_velocity)
         # control gripper
         self.y1_interface.SetGripperStroke(msg.gripper_stroke, msg.gripper_velocity)
+
+    def mit_control_callback(self, msg: MitControlMode):
+        """MIT 控制模式回调函数"""
+        # 机械臂 J1-J6 的 MIT 控制
+        arm_control_commands = []
+        for i in range(6):
+            cmd = MitControlCommand()
+            cmd.kp = msg.kp[i]
+            cmd.joint_position = msg.joint_position[i]
+            cmd.kd = msg.kd[i]
+            cmd.joint_velocity = msg.joint_velocity[i]
+            cmd.torque = msg.torque[i]
+            arm_control_commands.append(cmd)
+        
+        # 转换为数组格式
+        self.y1_interface.MitControlArm(arm_control_commands)
+
+        # 夹爪的 MIT 控制
+        gripper_cmd = MitControlCommand()
+        gripper_cmd.kp = msg.kp[6]
+        gripper_cmd.joint_position = msg.joint_position[6]
+        gripper_cmd.kd = msg.kd[6]
+        gripper_cmd.joint_velocity = msg.joint_velocity[6]
+        gripper_cmd.torque = msg.torque[6]
+        self.y1_interface.MitControlGripper(gripper_cmd)
 
     def arm_information_timer_callback(self):
         # 发布关节状态

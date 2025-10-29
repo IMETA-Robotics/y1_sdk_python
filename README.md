@@ -121,7 +121,7 @@ Refer to [y1_sdk/README.md].
 
 ### end pose control
 
-#### go to end pose [0.0535, -0.0476, 0.3963, -0.3829, -1.0915, 2.5349]
+#### go to end pose [0.0535, -0.0476, 0.3963, 0.1990, -0.4414, -1.0352]
   ```sh
   source install/setup.bash
   bash control_scripts/end_pose_control.sh
