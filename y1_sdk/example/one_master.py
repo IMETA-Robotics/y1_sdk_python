@@ -21,13 +21,13 @@ auto_enable = True
 arm_end_type = 3
 
 if arm_end_type == 0:
-    urdf_path = os.path.join(HERE, "urdf", "y10804.urdf")
+    urdf_path = os.path.join(HERE, "urdf", "y1_no_gripper.urdf")
 elif arm_end_type == 1:
-  urdf_path = os.path.join(HERE, "urdf", "y1_gripper_g.urdf")
+  urdf_path = os.path.join(HERE, "urdf", "y1_with_gripper.urdf")
 elif arm_end_type == 2:
-  urdf_path = os.path.join(HERE, "urdf", "y1_gripper_t.urdf")
+  urdf_path = os.path.join(HERE, "urdf", "y1_with_gripper.urdf")
 elif arm_end_type == 3:
-  urdf_path = os.path.join(HERE, "urdf", "y10824_ee.urdf")
+  urdf_path = os.path.join(HERE, "urdf", "y1_with_gripper.urdf")
 else:
     print(f"arm_end_type {arm_end_type} not supported")
     raise RuntimeError("Unsupported arm_end_type") 

@@ -37,13 +37,13 @@ class Y1Controller:
         package_path = rospack.get_path("y1_controller")
 
         if self.arm_end_type == 0:
-            urdf_path = f"{package_path}/urdf/y10804.urdf"
+            urdf_path = f"{package_path}/urdf/y1_no_gripper.urdf"
         elif self.arm_end_type == 1:
-            urdf_path = f"{package_path}/urdf/y1_gripper_t.urdf"
+            urdf_path = f"{package_path}/urdf/y1_with_gripper.urdf"
         elif self.arm_end_type == 2:
-            urdf_path = f"{package_path}/urdf/y1_gripper_g.urdf"
+            urdf_path = f"{package_path}/urdf/y1_with_gripper.urdf"
         elif self.arm_end_type == 3:
-            urdf_path = f"{package_path}/urdf/y10824_ee.urdf"
+            urdf_path = f"{package_path}/urdf/y1_with_gripper.urdf"
         else:
             rospy.logerr(f"arm_end_type {self.arm_end_type} not supported")
             raise RuntimeError("Unsupported arm_end_type")
