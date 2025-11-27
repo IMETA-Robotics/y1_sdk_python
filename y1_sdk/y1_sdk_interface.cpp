@@ -88,7 +88,29 @@ PYBIND11_MODULE(y1_sdk, m) {
 
       .def("SaveJ6ZeroPosition",
            &imeta::y1_controller::Y1SDKInterface::SaveJ6ZeroPosition,
-           "Save zero position for J6 joint when changing end flange.");
+           "Save zero position for J6 joint when changing end flange.")
+
+      // 仅开启夹爪力反馈时用
+      .def("SetFollowerArmJointVelocity",
+           (void (imeta::y1_controller::Y1SDKInterface::*)(
+               const std::vector<double>&)) &
+               imeta::y1_controller::Y1SDKInterface::SetArmJointVelocity,
+           "Set joint velocities by std::array<double,6>",
+           py::arg("arm_joint_velocity"))
+
+      .def("GetGripperInteractionForce",
+           &imeta::y1_controller::Y1SDKInterface::GetGripperInteractionForce,
+           "Get gripper interaction force feedback")
+
+      .def("SetGripperInteractionForce",
+           &imeta::y1_controller::Y1SDKInterface::SetSlaveGripperInteractionForce,
+           "Set gripper interaction force for follower arm",
+           py::arg("gripper_interaction_force"))
+
+      .def("SetGripperForceFeedback",
+           &imeta::y1_controller::Y1SDKInterface::SetGripperForceFeedback,
+           "Enable or disable gripper force feedback",
+           py::arg("gripper_feedback_enable"), py::arg("strength_level"));
 
   // 结束 module
 }

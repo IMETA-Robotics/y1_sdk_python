@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import rospy, rospkg
-from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl
+from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl, InteractionForce
 from sensor_msgs.msg import JointState
 from std_msgs.msg import String
 from y1_sdk import Y1SDKInterface, ControlMode
@@ -27,6 +27,8 @@ class Y1Controller:
         self.sim_joint_postion_control_topic = rospy.get_param(
             "~sim_joint_postion_control_topic", "/joint_states"
         )
+        self.gripper_force_feedback_enable = rospy.get_param("~gripper_force_feedback_enable", False)
+        self.gripper_force_feedback_gain = rospy.get_param("~gripper_force_feedback_gain", 10)
         self.is_sim = rospy.get_param("~is_sim", False)
         self.arm_control_type = rospy.get_param("~arm_control_type", "follower_arm")
         self.arm_end_type = rospy.get_param("~arm_end_type", 0)
@@ -62,6 +64,10 @@ class Y1Controller:
         # 设置控制模式
         if self.arm_control_type == "leader_arm":
             self.y1_interface.SetArmControlMode(ControlMode.GRAVITY_COMPENSATION)
+            if self.gripper_force_feedback_enable:
+                self.slave_arm_interaction_sub = rospy.Subscriber(
+                    "/y1/slave_arm_interaction",InteractionForce,self.slave_arm_interaction_callback)
+                self.y1_interface.SetGripperForceFeedback(self.gripper_force_feedback_enable, self.gripper_force_feedback_gain)
         elif self.arm_control_type == "follower_arm":
             self.y1_interface.SetArmControlMode(ControlMode.RT_JOINT_POSITION)
             self.arm_end_pose_sub = rospy.Subscriber(
@@ -70,6 +76,15 @@ class Y1Controller:
             self.arm_joint_pos_sub = rospy.Subscriber(
                 self.arm_joint_position_control_topic, ArmJointState, self.follow_arm_joint_callback
             )
+            self.slave_arm_interaction_pub = rospy.Publisher("/y1/slave_arm_interaction", InteractionForce, queue_size=1)
+            if self.gripper_force_feedback_enable:
+                self.arm_joint_velocity_control_sub = rospy.Subscriber(
+                    self.arm_joint_position_control_topic, ArmJointState, self.follow_arm_joint_velocity_callback
+                )
+                self.y1_interface.SetGripperForceFeedback(self.gripper_force_feedback_enable, self.gripper_force_feedback_gain)
+                self.slave_arm_interaction_timer = rospy.Timer(
+                    rospy.Duration(1.0 / self.arm_feedback_rate), self.slave_arm_interaction_timer_callback
+                    )
         elif self.arm_control_type == "normal_arm":
             self.y1_interface.SetArmControlMode(ControlMode.NRT_JOINT_POSITION)
             self.arm_end_pose_sub = rospy.Subscriber(
@@ -106,6 +121,12 @@ class Y1Controller:
             self.y1_interface.SetFollowerArmJointPosition(msg.joint_position)
         else:
             rospy.logerr("follow arm receive joint control size < 6")
+
+    def follow_arm_joint_velocity_callback(self, msg: ArmJointState):
+        if len(msg.joint_velocity) >= 6:
+            self.y1_interface.SetFollowerArmJointVelocity(msg.joint_velocity)
+        else:
+            rospy.logerr("follow arm receive joint velocity size < 6")
 
     def arm_joint_position_callback(self, msg: ArmJointPositionControl):
         # control J1 - J6 joint
@@ -152,6 +173,17 @@ class Y1Controller:
 
         self.arm_joint_state_pub.publish(arm_joint_state)
         self.arm_status_pub.publish(arm_status)
+
+    def slave_arm_interaction_timer_callback(self, event):
+        # 从臂发布夹爪反馈力
+        interaction_force = InteractionForce()
+        interaction_force.header.stamp = rospy.Time.now()
+        interaction_force.grip_interaction_torque = self.y1_interface.GetGripperInteractionForce()
+        self.slave_arm_interaction_pub.publish(interaction_force)
+
+    def slave_arm_interaction_callback(self, msg: InteractionForce):
+        # 主臂获取从臂夹爪反馈力
+        self.y1_interface.SetGripperInteractionForce(msg.grip_interaction_torque)
 
 
 if __name__ == "__main__":
