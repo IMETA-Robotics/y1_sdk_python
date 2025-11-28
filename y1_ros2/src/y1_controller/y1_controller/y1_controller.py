@@ -7,6 +7,7 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl
 from std_msgs.msg import String
 from y1_sdk import Y1SDKInterface, ControlMode
+from sensor_msgs.msg import JointState
 
 import os
 from ament_index_python.packages import get_package_share_directory
@@ -25,6 +26,7 @@ class Y1Controller(Node):
         self.declare_parameter("arm_control_type", "follower_arm")
         self.declare_parameter("arm_end_type", 0)
         self.declare_parameter("auto_enable", True)
+        self.declare_parameter('is_sim', False)
 
         self.can_id = self.get_parameter("arm_can_id").value
         self.arm_feedback_rate = self.get_parameter("arm_feedback_rate").value
@@ -35,6 +37,7 @@ class Y1Controller(Node):
         self.arm_control_type = self.get_parameter("arm_control_type").value
         self.arm_end_type = self.get_parameter("arm_end_type").value
         self.auto_enable = self.get_parameter("auto_enable").value
+        self.is_sim = self.get_parameter("is_sim").value
 
         # URDF路径 - ROS2方式
         package_name = "y1_controller"
@@ -107,6 +110,13 @@ class Y1Controller(Node):
                 self.arm_joint_position_callback, 
                 qos_profile
             )
+            if self.is_sim:
+                self.arm_joint_pos_sub = self.create_subscription(
+                JointState,
+                "/joint_states",
+                self.sim_joint_position_callback,
+                qos_profile
+                )
         else:
             self.get_logger().error(f"arm_control_type {self.arm_control_type} not supported")
             raise RuntimeError("Unsupported arm_control_type")
@@ -147,6 +157,14 @@ class Y1Controller(Node):
         self.y1_interface.SetArmJointPosition(arm_joint_position, msg.joint_velocity)
         # control gripper
         self.y1_interface.SetGripperStroke(msg.gripper_stroke, msg.gripper_velocity)
+
+    def sim_joint_position_callback(self, msg: JointState):
+        # 控制 J1 - J6 关节
+        arm_joint_position = list(msg.position[:6])
+        self.y1_interface.SetArmJointPosition(arm_joint_position, 6)
+        # 控制夹爪
+        if len(msg.position) >= 7:
+         self.y1_interface.SetGripperStroke(-msg.position[6] * 2000, 6)
 
     def arm_information_timer_callback(self):
         # 发布关节状态

@@ -10,6 +10,8 @@ right_normal_arm:
     arm_end_type: 3
     # whether to enable robotic arm 
     auto_enable: true
+    # whether to run in simulation
+    is_sim: true
     # end pose control arm 
     arm_end_pose_control_topic: '/master_arm_right/end_pose_control'
     # joint position control arm 
