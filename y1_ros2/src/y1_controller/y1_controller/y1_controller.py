@@ -4,7 +4,7 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 
-from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl
+from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl, GripperControl
 from std_msgs.msg import String
 from y1_sdk import Y1SDKInterface, ControlMode
 from sensor_msgs.msg import JointState
@@ -19,6 +19,8 @@ class Y1Controller(Node):
         # ROS 2 参数声明和获取
         self.declare_parameter("arm_can_id", "can0")
         self.declare_parameter("arm_feedback_rate", 200)
+        self.declare_parameter("vr_end_pose_control_topic", "/vr/end_pose_control")
+        self.declare_parameter("vr_gripper_control_topic", "/vr/gripper_control")
         self.declare_parameter("arm_end_pose_control_topic", "/y1/arm_end_pose_control")
         self.declare_parameter("arm_joint_position_control_topic", "/y1/arm_joint_position_control_topic")
         self.declare_parameter("arm_joint_state_topic", "/y1/arm_joint_state")
@@ -30,6 +32,8 @@ class Y1Controller(Node):
 
         self.can_id = self.get_parameter("arm_can_id").value
         self.arm_feedback_rate = self.get_parameter("arm_feedback_rate").value
+        self.vr_end_pose_control_topic = self.get_parameter("vr_end_pose_control_topic").value
+        self.vr_gripper_control_topic = self.get_parameter("vr_gripper_control_topic").value
         self.arm_end_pose_control_topic = self.get_parameter("arm_end_pose_control_topic").value
         self.arm_joint_position_control_topic = self.get_parameter("arm_joint_position_control_topic").value
         self.arm_joint_state_topic = self.get_parameter("arm_joint_state_topic").value
@@ -96,6 +100,23 @@ class Y1Controller(Node):
                 self.follow_arm_joint_callback, 
                 qos_profile
             )
+
+            # for vr teleoprate
+            # "/vr_left/end_pose"
+            self.vr_end_pose_sub = self.create_subscription(
+                ArmEndPoseControl, 
+                self.vr_end_pose_control_topic,
+                self.vr_end_pose_callback, 
+                qos_profile
+            )
+
+            self.vr_gripper_sub = self.create_subscription(
+                GripperControl, 
+                self.vr_gripper_control_topic, 
+                self.vr_gripper_callback, 
+                qos_profile
+            )
+
         elif self.arm_control_type == "normal_arm":
             self.y1_interface.SetArmControlMode(ControlMode.NRT_JOINT_POSITION)
             self.arm_end_pose_sub = self.create_subscription(
@@ -150,6 +171,16 @@ class Y1Controller(Node):
             self.y1_interface.SetFollowerArmJointPosition(msg.joint_position)
         else:
             self.get_logger().error("follow arm receive joint control size < 6")
+
+    def vr_end_pose_callback(self, msg: ArmEndPoseControl):
+        # only control J1 - J6
+        arm_end_pose = list(msg.end_pose[:6])
+        self.y1_interface.SetArmEndPose(arm_end_pose)
+
+    def vr_gripper_callback(self, msg: GripperControl):
+        # control gripper
+        self.y1_interface.SetGripperStroke(msg.gripper_stroke, 5)
+        print(f"SetGripperStroke : {msg.gripper_stroke}")
 
     def arm_joint_position_callback(self, msg: ArmJointPositionControl):
         # control J1 - J6 joint
