@@ -16,7 +16,7 @@ import time
 # 获取当前脚本文件所在目录
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-can_id = "can0"
+can_id = "can1"
 # 使能 or 失能
 auto_enable = True
 # 0: nothing, 1: gripper, 2: teaching pendant, 3: gripper and teaching pendant
@@ -57,8 +57,9 @@ if __name__ == "__main__":
     joint_position_control_flag = False
     if joint_position_control_flag:
       time.sleep(3)
-      joint_position_control = [0.6, -0.6, 0.6, 0.5, 0.4, 0]
-      joint_velocity_control = 10  # 关节执行速度幅度(1-10), 1为最慢, 10为最快, 可以不设置, 默认参数为5
+      # joint_position_control = [0.6, -0.6, 0.6, 0.5, 0.4, 0]
+      joint_position_control = [0, 0, 0, 0, 0, 0]
+      joint_velocity_control = 3  # 关节执行速度幅度(1-10), 1为最慢, 10为最快, 可以不设置, 默认参数为5
       single_control_arm.SetArmJointPosition(joint_position_control, joint_velocity_control)  # control J1 - J6 joint
       
       gripper_stroke = 10  # 夹爪行程(0-80mm)
@@ -69,9 +70,11 @@ if __name__ == "__main__":
     end_pose_control_flag = True
     if end_pose_control_flag:
       time.sleep(3)
-      arm_end_pose_control = [0.0535, -0.0476, 0.3963, -0.3829, -1.0915, 2.5349]
-      single_control_arm.SetArmEndPose(arm_end_pose_control)  # end pose control arm
-      
+      arm_end_pose_control = [0.05, -0.04, 0.4, 0.2, -0.5, -1]
+      joint_velocity_control = 3  # 关节执行速度幅度(1-10), 1为最慢, 10为最快, 可以不设置, 默认参数为5
+      ik_result = single_control_arm.SetArmEndPose(arm_end_pose_control, joint_velocity_control)  # end pose control arm
+      print("ik result: ", ik_result)
+
       gripper_stroke = 10  # 夹爪行程(0-80mm)
       gripper_velocity = 3 # 夹爪执行速度幅度(1-10), 1为最慢, 10为最快, 可以不设置, 默认参数为5
       single_control_arm.SetGripperStroke(gripper_stroke, gripper_velocity)  # control gripper
@@ -87,11 +90,11 @@ if __name__ == "__main__":
         # 关节力矩
         joint_effort = single_control_arm.GetJointEffort()
         
-        print("arm end pose: ", arm_end_pose)
-        print("arm joint position: ", joint_position)
-        print("arm joint velocity: ", joint_velocity)
-        print("arm joint effort: ", joint_effort)
-        # 等待10ms
-        time.sleep(0.01)
+        # print("arm end pose: ", arm_end_pose)
+        # print("arm joint position: ", joint_position)
+        # print("arm joint velocity: ", joint_velocity)
+        # print("arm joint effort: ", joint_effort)
+        # 等待100ms
+        time.sleep(0.1)
     
         

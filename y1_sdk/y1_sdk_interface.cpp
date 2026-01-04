@@ -1,8 +1,8 @@
 // bindings/wrapper.cpp
 
-#include <pybind11/functional.h>  // 如果以后有 callback
+#include <pybind11/functional.h> // 如果以后有 callback
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>  // 支持 std::vector
+#include <pybind11/stl.h> // 支持 std::vector
 // 如果需要支持 numpy arrays 或 buffer，就引入 numpy.h 或 buffer.h
 
 #include "y1_sdk/y1_sdk_interface.h"
@@ -25,7 +25,7 @@ PYBIND11_MODULE(y1_sdk, m) {
   // 绑定类 Y1SDKInterface
   py::class_<imeta::y1_controller::Y1SDKInterface>(m, "Y1SDKInterface")
       // 构造函数
-      .def(py::init<const std::string&, const std::string&, int, bool>(),
+      .def(py::init<const std::string &, const std::string &, int, bool>(),
            py::arg("can_id"), py::arg("urdf_path"), py::arg("arm_end_type"),
            py::arg("enable_arm"))
       // 析构函数自动处理
@@ -33,7 +33,8 @@ PYBIND11_MODULE(y1_sdk, m) {
       // 方法
       .def("Init", &imeta::y1_controller::Y1SDKInterface::Init,
            "Initialize the SDK interface. Returns true if success.")
-      .def("GetJointNames", &imeta::y1_controller::Y1SDKInterface::GetJointNames,
+      .def("GetJointNames",
+           &imeta::y1_controller::Y1SDKInterface::GetJointNames,
            "Returns the joint names (6 or 7 including gripper).")
       .def("GetRotorTemperature",
            &imeta::y1_controller::Y1SDKInterface::GetRotorTemperature,
@@ -50,9 +51,11 @@ PYBIND11_MODULE(y1_sdk, m) {
       .def("GetJointVelocity",
            &imeta::y1_controller::Y1SDKInterface::GetJointVelocity,
            "Joint velocities.")
-      .def("GetJointEffort", &imeta::y1_controller::Y1SDKInterface::GetJointEffort,
+      .def("GetJointEffort",
+           &imeta::y1_controller::Y1SDKInterface::GetJointEffort,
            "Joint torques / efforts.")
-      .def("GetArmEndPose", &imeta::y1_controller::Y1SDKInterface::GetArmEndPose,
+      .def("GetArmEndPose",
+           &imeta::y1_controller::Y1SDKInterface::GetArmEndPose,
            "End pose of the arm: [x, y, z, roll, pitch, yaw]")
 
       .def("SetArmControlMode",
@@ -62,21 +65,25 @@ PYBIND11_MODULE(y1_sdk, m) {
       // 控制函数
       .def("SetArmJointPosition",
            (void (imeta::y1_controller::Y1SDKInterface::*)(
-               const std::array<double, 6>&, int)) &
-               imeta::y1_controller::Y1SDKInterface::SetArmJointPosition,
+               const std::array<double, 6> &,
+               int))&imeta::y1_controller::Y1SDKInterface::SetArmJointPosition,
            "Set joint positions by std::array<double,6> with optional velocity "
            "ratio",
            py::arg("arm_joint_position"), py::arg("velocity_ratio") = 5)
 
-      .def("SetFollowerArmJointPosition",
-           (void (imeta::y1_controller::Y1SDKInterface::*)(
-               const std::vector<double>&)) &
-               imeta::y1_controller::Y1SDKInterface::SetArmJointPosition,
-           "Set joint positions by vector<double>",
-           py::arg("arm_joint_position"))
+      .def(
+          "SetFollowerArmJointPosition",
+          (void (imeta::y1_controller::Y1SDKInterface::*)(
+              const std::vector<double>
+                  &))&imeta::y1_controller::Y1SDKInterface::SetArmJointPosition,
+          "Set joint positions by vector<double>",
+          py::arg("arm_joint_position"))
 
-      .def("SetArmEndPose", &imeta::y1_controller::Y1SDKInterface::SetArmEndPose,
-           "Set end pose [x,y,z,roll,pitch,yaw]", py::arg("arm_end_pose"))
+      .def("SetArmEndPose",
+           &imeta::y1_controller::Y1SDKInterface::SetArmEndPose,
+           "Set end pose [x,y,z,roll,pitch,yaw] and return calculated joint "
+           "positions from inverse kinematics, with optional velocity ratio",
+           py::arg("arm_end_pose"), py::arg("velocity_ratio") = 5)
 
       .def("SetGripperStroke",
            &imeta::y1_controller::Y1SDKInterface::SetGripperStroke,
