@@ -180,7 +180,7 @@ class Y1Controller(Node):
     def vr_gripper_callback(self, msg: GripperControl):
         # control gripper
         self.y1_interface.SetGripperStroke(msg.gripper_stroke, 5)
-        print(f"SetGripperStroke : {msg.gripper_stroke}")
+        # print(f"SetGripperStroke : {msg.gripper_stroke}")
 
     def arm_joint_position_callback(self, msg: ArmJointPositionControl):
         # control J1 - J6 joint
