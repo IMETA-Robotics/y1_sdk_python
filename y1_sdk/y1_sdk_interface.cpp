@@ -20,7 +20,20 @@ PYBIND11_MODULE(y1_sdk, m) {
              imeta::y1_controller::Y1SDKInterface::RT_JOINT_POSITION)
       .value("NRT_JOINT_POSITION",
              imeta::y1_controller::Y1SDKInterface::NRT_JOINT_POSITION)
+      .value("MIT_CONTROL", imeta::y1_controller::Y1SDKInterface::MIT_CONTROL)
       .export_values();
+
+  // 绑定结构体 MitControlCommand
+  py::class_<imeta::y1_controller::MitControlCommand>(m, "MitControlCommand")
+      .def(py::init<>())
+      .def_readwrite("kp", &imeta::y1_controller::MitControlCommand::kp)
+      .def_readwrite("joint_position",
+                     &imeta::y1_controller::MitControlCommand::joint_position)
+      .def_readwrite("kd", &imeta::y1_controller::MitControlCommand::kd)
+      .def_readwrite("joint_velocity",
+                     &imeta::y1_controller::MitControlCommand::joint_velocity)
+      .def_readwrite("torque",
+                     &imeta::y1_controller::MitControlCommand::torque);
 
   // 绑定类 Y1SDKInterface
   py::class_<imeta::y1_controller::Y1SDKInterface>(m, "Y1SDKInterface")
@@ -75,13 +88,26 @@ PYBIND11_MODULE(y1_sdk, m) {
            "Set joint positions by vector<double>",
            py::arg("arm_joint_position"))
 
-      .def("SetArmEndPose", &imeta::y1_controller::Y1SDKInterface::SetArmEndPose,
-           "Set end pose [x,y,z,roll,pitch,yaw]", py::arg("arm_end_pose"))
+      .def("SetArmEndPose",
+           &imeta::y1_controller::Y1SDKInterface::SetArmEndPose,
+           "Set end pose [x,y,z,roll,pitch,yaw] and return calculated joint "
+           "positions from inverse kinematics, with optional velocity ratio",
+           py::arg("arm_end_pose"), py::arg("velocity_ratio") = 5)
 
       .def("SetGripperStroke",
            &imeta::y1_controller::Y1SDKInterface::SetGripperStroke,
            "Set gripper stroke in mm", py::arg("gripper_stroke"),
            py::arg("velocity_ratio") = 5)
+
+      // 新增的 MIT 控制方法
+      .def("MitControlArm",
+           &imeta::y1_controller::Y1SDKInterface::MitControlArm,
+           "MIT control mode for arm motors J1-J6",
+           py::arg("arm_control_command"))
+
+      .def("MitControlGripper",
+           &imeta::y1_controller::Y1SDKInterface::MitControlGripper,
+           "MIT control mode for gripper", py::arg("gripper_control_command"))
 
       .def("SetEnableArm", &imeta::y1_controller::Y1SDKInterface::SetEnableArm,
            "Enable or disable arm motors", py::arg("enable_flag"))

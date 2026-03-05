@@ -8,6 +8,14 @@
 namespace imeta {
 namespace y1_controller {
 
+struct MitControlCommand {
+  float kp;
+  float joint_position;
+  float kd;
+  float joint_velocity;
+  float torque;
+};
+
 class Y1SDKInterface {
  public:
   Y1SDKInterface() = delete;
@@ -25,7 +33,8 @@ class Y1SDKInterface {
   enum ControlMode {
     GRAVITY_COMPENSATION = 0,
     RT_JOINT_POSITION = 1,
-    NRT_JOINT_POSITION
+    NRT_JOINT_POSITION = 2,
+    MIT_CONTROL = 3
   };
 
   /**
@@ -102,16 +111,32 @@ class Y1SDKInterface {
 
   /**
    * @brief set arm end pose control command. (x y z roll pitch yaw)
+   * @param arm_end_pose end pose command(x y z roll pitch yaw)
+   * @param velocity_ratio range:[1, 10], default is 5, 1 is slower, 10 is
+   * @return joint position calculated by ik, if ik failed, return zero array.
    */
-  void SetArmEndPose(const std::array<double, 6>& arm_end_pose);
+  std::array<double, 6> SetArmEndPose(const std::array<double, 6> &arm_end_pose,
+                                      int velocity_ratio = 5);
 
   /**
    * @brief set gripper stroke control command. Unit: mm
-   * @param gripper_stroke Unit: mm, range: [0, 80]
+   * @param gripper_stroke Unit: mm, range: [0, 100]
    * @param velocity_ratio range:[1, 10], default is 5, 1 is slower, 10 is
    * faster.
    */
   void SetGripperStroke(double gripper_stroke, int velocity_ratio = 5);
+
+  /**
+   * @brief mit control mode for arm motor J1 - J6.
+   * @param arm_control_command J1-J6 mit control command
+  */
+  void MitControlArm(const std::array<MitControlCommand, 6>& arm_control_command);
+
+  /**
+   * @brief mit control mode for gripper, Torque value: Open is positive, closed is negative.
+   * @param gripper_control_command gripper mit control command
+  */
+  void MitControlGripper(const MitControlCommand& gripper_control_command);
 
   /**
    * @brief Enable or disable all joint motor.

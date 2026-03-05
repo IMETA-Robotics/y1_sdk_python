@@ -19,7 +19,7 @@ can_id = "can0"
 # 使能 or 失能
 auto_enable = True
 # 0: nothing, 1: gripper, 2: teaching pendant, 3: gripper and teaching pendant
-arm_end_type = 0
+arm_end_type = 3
 
 if arm_end_type == 0:
     urdf_path = os.path.join(HERE, "urdf", "y1_no_gripper.urdf")
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         # slave_arm.SetFollowerArmJointPosition(joint_position_control)
         
         # 发送末端位姿控制
-        # arm_end_pose_control = [0, 0, 0, 0, 0, 0]
+        # arm_end_pose_control = [0.0535, -0.0476, 0.3963, -0.3829, -1.0915, 2.5349]
         # slave_arm.SetArmEndPose(arm_end_pose_control)
         # slave_arm.SetGripperStroke(gripper_stroke, gripper_velocity)  # 设置夹爪量程和执行速度
         

@@ -19,7 +19,7 @@ can_id = "can0"
 # 使能 or 失能
 auto_enable = True
 # 0: nothing, 1: gripper, 2: teaching pendant, 3: gripper and teaching pendant
-arm_end_type = 0
+arm_end_type = 3
 
 if arm_end_type == 0:
     urdf_path = os.path.join(HERE, "urdf", "y1_no_gripper.urdf")
@@ -54,13 +54,14 @@ if __name__ == "__main__":
     
     # 关节位置控制
     time.sleep(3)
-    joint_position_control_flag = False
+    joint_position_control_flag = True
     if joint_position_control_flag:
-      joint_position_control = [0.6, -0.6, 0.6, 0.5, 0.4, 0]
+      # joint_position_control = [0.6, -0.6, 0.6, 0.5, 0.4, 0]
+      joint_position_control = [0, 0, 0, 0, 0, 0]
       joint_velocity_control = 3  # 关节执行速度幅度(1-10), 1为最慢, 10为最快, 可以不设置, 默认参数为5
       single_control_arm.SetArmJointPosition(joint_position_control, joint_velocity_control)  # control J1 - J6 joint
       
-      gripper_stroke = 10  # 夹爪行程(0-80mm)
+      gripper_stroke = 0  # 夹爪行程(0-80mm)
       gripper_velocity = 3 # 夹爪执行速度幅度(1-10), 1为最慢, 10为最快, 可以不设置, 默认参数为5
       single_control_arm.SetGripperStroke(gripper_stroke, gripper_velocity)  # control gripper
     
