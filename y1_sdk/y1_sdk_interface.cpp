@@ -103,6 +103,12 @@ PYBIND11_MODULE(y1_sdk, m) {
            "Set gripper stroke in mm", py::arg("gripper_stroke"),
            py::arg("velocity_ratio") = 5)
 
+      .def("SetGripperMode",
+           &imeta::y1_controller::Y1SDKInterface::SetGripperMode,
+           "Set gripper control mode in GRAVITY_COMPENSATION mode - true: "
+           "torque compensation, false: position control",
+           py::arg("torque_compensation"))
+
       // 新增的 MIT 控制方法
       .def("MitControlArm",
            &imeta::y1_controller::Y1SDKInterface::MitControlArm,
