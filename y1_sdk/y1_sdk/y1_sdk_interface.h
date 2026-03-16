@@ -90,7 +90,7 @@ class Y1SDKInterface {
 
   /**
    * @brief set arm control mode. (0: GRAVITY_COMPENSATION, 1:
-   * RT_JOINT_POSITION, 2: NRT_JOINT_POSITION)
+   * RT_JOINT_POSITION, 2: NRT_JOINT_POSITION, 3: MIT_CONTROL)
    */
   void SetArmControlMode(const ControlMode& mode);
 
@@ -125,6 +125,14 @@ class Y1SDKInterface {
    * faster.
    */
   void SetGripperStroke(double gripper_stroke, int velocity_ratio = 5);
+
+  /**
+   * @brief set gripper control mode in GRAVITY_COMPENSATION mode.
+   *   Note: 1. only valid in GRAVITY_COMPENSATION mode.
+   *         2. gripper default torque compensation. 
+   * @param enable_flag true: torque compensation, false: position control.
+   */
+  void SetGripperMode(bool torque_compensation);
 
   /**
    * @brief mit control mode for arm motor J1 - J6.
