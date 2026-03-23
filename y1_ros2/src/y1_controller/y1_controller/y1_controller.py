@@ -98,24 +98,39 @@ class Y1Controller(Node):
             )
         elif self.arm_control_type == "normal_arm":
             self.y1_interface.SetArmControlMode(ControlMode.NRT_JOINT_POSITION)
-            self.arm_end_pose_sub = self.create_subscription(
-                ArmEndPoseControl, 
-                self.arm_end_pose_control_topic, 
-                self.arm_end_pose_callback, 
-                qos_profile
-            )
-            self.arm_joint_pos_sub = self.create_subscription(
-                ArmJointPositionControl, 
-                self.arm_joint_position_control_topic, 
-                self.arm_joint_position_callback, 
-                qos_profile
-            )
+            
+            # self.arm_end_pose_sub = self.create_subscription(
+            #     ArmEndPoseControl, 
+            #     self.arm_end_pose_control_topic, 
+            #     self.arm_end_pose_callback, 
+            #     qos_profile
+            # )
+            # self.arm_joint_pos_sub = self.create_subscription(
+            #     ArmJointPositionControl, 
+            #     self.arm_joint_position_control_topic, 
+            #     self.arm_joint_position_callback, 
+            #     qos_profile
+            # )
+            print("is_sim:", self.is_sim)
             if self.is_sim:
                 self.arm_joint_pos_sub = self.create_subscription(
                 JointState,
                 "/joint_states",
                 self.sim_joint_position_callback,
                 qos_profile
+                )
+            else:
+                self.arm_end_pose_sub = self.create_subscription(
+                    ArmEndPoseControl, 
+                    self.arm_end_pose_control_topic, 
+                    self.arm_end_pose_callback, 
+                    qos_profile
+                )
+                self.arm_joint_pos_sub = self.create_subscription(
+                    ArmJointPositionControl, 
+                    self.arm_joint_position_control_topic, 
+                    self.arm_joint_position_callback, 
+                    qos_profile
                 )
         else:
             self.get_logger().error(f"arm_control_type {self.arm_control_type} not supported")
@@ -158,13 +173,77 @@ class Y1Controller(Node):
         # control gripper
         self.y1_interface.SetGripperStroke(msg.gripper_stroke, msg.gripper_velocity)
 
-    def sim_joint_position_callback(self, msg: JointState):
-        # 控制 J1 - J6 关节
-        arm_joint_position = list(msg.position[:6])
+    def sim_joint_position_callback(self, msg):
+        """
+        Callback function for joint angles (SimPositionControl)
+        Solves joint order mismatch by using a name-to-position map.
+        """
+        # 1. Create a dictionary to store joint name to position mapping
+        # Corresponds to C++: std::map<std::string, double> joint_positions_map;
+        joint_positions_map = {}
+
+        # Variable to store gripper joint value
+        gripper_pos_raw = 0.0
+        gripper_found = False
+
+        # 2. Iterate through msg.name to map positions
+        if len(msg.name) != len(msg.position):
+            self.get_logger().error("JointState name and position size mismatch!")
+            return
+
+        for i, name in enumerate(msg.name):
+            pos = msg.position[i]
+            
+            # Store in dictionary
+            joint_positions_map[name] = pos
+            
+            # Strategy: Prefer index 6 as gripper (compatible with old logic)
+            if i == 6:
+                gripper_pos_raw = msg.position[i]
+                gripper_found = True
+            
+            # Extra insurance: If joint name contains "gripper" or is "joint7", treat as gripper
+            if 'gripper' in name or name == 'joint7':
+                gripper_pos_raw = msg.position[i]
+                gripper_found = True
+
+        # 3. Dynamically control joints using joint names (Core fix)
+        # Build a correctly ordered list ensuring index 0 is joint1, index 1 is joint2, etc.
+        arm_joint_position = [0.0] * 6
+        
+        # Define expected joint name order
+        expected_names = ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"]
+
+        for i in range(6):
+            target_name = expected_names[i]
+            
+            # Look up in map
+            if target_name in joint_positions_map:
+                arm_joint_position[i] = joint_positions_map[target_name]
+            else:
+                # If joint not found, warn and use 0
+                self.get_logger().warn_throttle(
+                    1.0, 
+                    f"Joint '{target_name}' not found in JointState message!"
+                )
+                arm_joint_position[i] = 0.0
+
+        # 4. Send arm control command
+        # Now arm_joint_position order is forced to joint1~joint6
+        # Assuming self.y1_interface is available in your class
         self.y1_interface.SetArmJointPosition(arm_joint_position, 6)
-        # 控制夹爪
-        if len(msg.position) >= 7:
-         self.y1_interface.SetGripperStroke(-msg.position[6] * 2000, 6)
+
+        # 5. Gripper control
+        if gripper_found:
+            gripper_stroke = -gripper_pos_raw * 2000.0
+            
+            # Optional: NaN check
+            import math
+            if math.isnan(gripper_stroke):
+                gripper_stroke = 0.0
+                self.get_logger().warn("Gripper position is NaN, using default.")
+
+            self.y1_interface.SetGripperStroke(gripper_stroke, 6)
 
     def arm_information_timer_callback(self):
         # 发布关节状态
