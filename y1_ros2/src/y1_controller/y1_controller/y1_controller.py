@@ -4,7 +4,13 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 
-from y1_msg.msg import ArmStatus, ArmJointState, ArmEndPoseControl, ArmJointPositionControl
+from y1_msg.msg import (
+    ArmStatus,
+    ArmJointState,
+    ArmEndPoseControl,
+    ArmJointPositionControl,
+    InteractionForce,
+)
 from std_msgs.msg import String
 from y1_sdk import Y1SDKInterface, ControlMode
 from sensor_msgs.msg import JointState
@@ -27,6 +33,9 @@ class Y1Controller(Node):
         self.declare_parameter("arm_end_type", 0)
         self.declare_parameter("auto_enable", True)
         self.declare_parameter('is_sim', False)
+        self.declare_parameter("gripper_force_feedback_enable", False)
+        self.declare_parameter("gripper_force_feedback_gain", 10)
+        self.declare_parameter("slave_arm_interaction_topic", "/y1/slave_arm_interaction")
 
         self.can_id = self.get_parameter("arm_can_id").value
         self.arm_feedback_rate = self.get_parameter("arm_feedback_rate").value
@@ -38,6 +47,15 @@ class Y1Controller(Node):
         self.arm_end_type = self.get_parameter("arm_end_type").value
         self.auto_enable = self.get_parameter("auto_enable").value
         self.is_sim = self.get_parameter("is_sim").value
+        self.gripper_force_feedback_enable = self.get_parameter(
+            "gripper_force_feedback_enable"
+        ).value
+        self.gripper_force_feedback_gain = self.get_parameter(
+            "gripper_force_feedback_gain"
+        ).value
+        self.slave_arm_interaction_topic = self.get_parameter(
+            "slave_arm_interaction_topic"
+        ).value
 
         # URDF路径 - ROS2方式
         package_name = "y1_controller"
@@ -82,6 +100,16 @@ class Y1Controller(Node):
         # 设置控制模式
         if self.arm_control_type == "leader_arm":
             self.y1_interface.SetArmControlMode(ControlMode.GRAVITY_COMPENSATION)
+            if self.gripper_force_feedback_enable:
+                self.slave_arm_interaction_sub = self.create_subscription(
+                    InteractionForce,
+                    self.slave_arm_interaction_topic,
+                    self.slave_arm_interaction_callback,
+                    qos_profile,
+                )
+                self.y1_interface.SetGripperForceFeedback(
+                    True, self.gripper_force_feedback_gain
+                )
         elif self.arm_control_type == "follower_arm":
             self.y1_interface.SetArmControlMode(ControlMode.RT_JOINT_POSITION)
             self.arm_end_pose_sub = self.create_subscription(
@@ -96,6 +124,19 @@ class Y1Controller(Node):
                 self.follow_arm_joint_callback, 
                 qos_profile
             )
+            if self.gripper_force_feedback_enable:
+                self.slave_arm_interaction_pub = self.create_publisher(
+                    InteractionForce,
+                    self.slave_arm_interaction_topic,
+                    qos_profile,
+                )
+                self.slave_interaction_timer = self.create_timer(
+                    1.0 / self.arm_feedback_rate,
+                    self.slave_arm_interaction_timer_callback,
+                )
+                self.y1_interface.SetGripperForceFeedback(
+                    True, self.gripper_force_feedback_gain
+                )
         elif self.arm_control_type == "normal_arm":
             self.y1_interface.SetArmControlMode(ControlMode.NRT_JOINT_POSITION)
             
@@ -165,6 +206,21 @@ class Y1Controller(Node):
             self.y1_interface.SetFollowerArmJointPosition(msg.joint_position)
         else:
             self.get_logger().error("follow arm receive joint control size < 6")
+        if self.gripper_force_feedback_enable and len(msg.joint_velocity) >= 6:
+            self.y1_interface.SetArmJointVelocity(msg.joint_velocity)
+
+    def slave_arm_interaction_timer_callback(self):
+        out = InteractionForce()
+        out.header.stamp = self.get_clock().now().to_msg()
+        out.grip_interaction_torque = list(
+            self.y1_interface.GetGripperInteractionForce()
+        )
+        self.slave_arm_interaction_pub.publish(out)
+
+    def slave_arm_interaction_callback(self, msg: InteractionForce):
+        self.y1_interface.SetSlaveGripperInteractionForce(
+            list(msg.grip_interaction_torque)
+        )
 
     def arm_joint_position_callback(self, msg: ArmJointPositionControl):
         # control J1 - J6 joint

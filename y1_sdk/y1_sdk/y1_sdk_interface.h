@@ -80,10 +80,28 @@ class Y1SDKInterface {
   std::array<double, 6> GetArmEndPose();
 
   /**
+   * @brief 夹爪交互力（从端 FDOB 估计后由上层转发；主端读取用于力反馈）。
+   */
+  std::vector<double> GetGripperInteractionForce();
+
+  /**
+   * @brief 主端写入从端上报的夹爪交互力（与 y1_robot_ubuntu20_04 一致）。
+   */
+  void SetSlaveGripperInteractionForce(
+      const std::vector<double>& gripper_interaction_force);
+
+  /**
    * @brief set arm control mode. (0: GRAVITY_COMPENSATION, 1:
    * RT_JOINT_POSITION, 2: NRT_JOINT_POSITION)
    */
   void SetArmControlMode(const ControlMode& mode);
+
+  /**
+   * @brief 夹爪力反馈开关与强度。
+   * @param strength_level 1–10
+   */
+  void SetGripperForceFeedback(bool gripper_feedback_enable,
+                               int strength_level);
 
   /**
    * @brief set normal control arm joint position and velocity ratio.
@@ -99,6 +117,11 @@ class Y1SDKInterface {
    * @param arm_joint_position all joint position, include gripper
    */
   void SetArmJointPosition(const std::vector<double>& arm_joint_position);
+
+  /**
+   * @brief 从臂关节速度指令（含末端时为 7 维，含夹爪）。
+   */
+  void SetArmJointVelocity(const std::vector<double>& arm_joint_velocity);
 
   /**
    * @brief set arm end pose control command. (x y z roll pitch yaw)

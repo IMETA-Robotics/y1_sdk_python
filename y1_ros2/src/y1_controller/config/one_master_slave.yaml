@@ -10,6 +10,10 @@ right_master_arm:
     arm_end_type: 3
     # whether to enable robotic arm 
     auto_enable: true
+    # 夹爪力反馈：与 ROS1 one_master.launch 一致时可设为 true（需升级 lib + pybind 见节点日志）
+    gripper_force_feedback_enable: true
+    gripper_force_feedback_gain: 10
+    slave_arm_interaction_topic: '/y1/slave_arm_interaction'
     # end pose and joint position feedback 
     arm_joint_state_topic: '/master_arm_right/joint_states'
     # joint motor status feedback 
@@ -29,6 +33,9 @@ right_slave_arm:
     auto_enable: true
     # joint position control arm 
     arm_joint_position_control_topic: '/master_arm_right/joint_states'
+    gripper_force_feedback_enable: true
+    # gripper_force_feedback_gain: 10
+    slave_arm_interaction_topic: '/y1/slave_arm_interaction'
     # end pose and joint position feedback 
     arm_joint_state_topic: '/puppet_arm_right/joint_states'
     # joint motor status feedback 

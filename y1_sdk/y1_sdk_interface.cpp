@@ -55,6 +55,20 @@ PYBIND11_MODULE(y1_sdk, m) {
       .def("GetArmEndPose", &imeta::y1_controller::Y1SDKInterface::GetArmEndPose,
            "End pose of the arm: [x, y, z, roll, pitch, yaw]")
 
+      .def("GetGripperInteractionForce",
+           &imeta::y1_controller::Y1SDKInterface::GetGripperInteractionForce,
+           "Slave gripper interaction force estimate (FDOB), length 1.")
+
+      .def("SetSlaveGripperInteractionForce",
+           &imeta::y1_controller::Y1SDKInterface::SetSlaveGripperInteractionForce,
+           "Master: write slave-reported gripper interaction force.",
+           py::arg("gripper_interaction_force"))
+
+      .def("SetGripperForceFeedback",
+           &imeta::y1_controller::Y1SDKInterface::SetGripperForceFeedback,
+           "Enable gripper force feedback; strength_level in [1, 10].",
+           py::arg("gripper_feedback_enable"), py::arg("strength_level"))
+
       .def("SetArmControlMode",
            &imeta::y1_controller::Y1SDKInterface::SetArmControlMode,
            "Set control mode", py::arg("mode"))
@@ -74,6 +88,11 @@ PYBIND11_MODULE(y1_sdk, m) {
                imeta::y1_controller::Y1SDKInterface::SetArmJointPosition,
            "Set joint positions by vector<double>",
            py::arg("arm_joint_position"))
+
+      .def("SetArmJointVelocity",
+           &imeta::y1_controller::Y1SDKInterface::SetArmJointVelocity,
+           "Follower: joint velocities from leader (vector, includes gripper).",
+           py::arg("arm_joint_velocity"))
 
       .def("SetArmEndPose", &imeta::y1_controller::Y1SDKInterface::SetArmEndPose,
            "Set end pose [x,y,z,roll,pitch,yaw]", py::arg("arm_end_pose"))
