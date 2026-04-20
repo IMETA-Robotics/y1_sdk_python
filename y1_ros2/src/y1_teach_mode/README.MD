@@ -64,7 +64,7 @@ python3 end_pose_play_trajectory.py
 - `joint_position_control_topic` / `end_pose_control_topic`：回放时发布的话题  
 - `playback_rate_hz` / `record_rate_hz`：频率  
 
-**数据约定（初稿）：** jsonl 每行一条 JSON，至少包含 `position`、`end_pose` 等字段；回放脚本根据 **首条** `position` 元素个数判断 **6（仅机械臂）** 或 **7（第 7 维为夹爪行程）**。
+**数据约定：** jsonl 每行一条 JSON，至少包含 `position`、`end_pose` 等字段；回放脚本根据 **首条** `position` 元素个数判断 **6（仅机械臂）** 或 **7（第 7 维为夹爪行程）**。
 
 ---
 
@@ -98,7 +98,7 @@ python3 record_trajectory.py
 
 **B 播放轨迹**（以下脚本不可同时运行）
 
-关节流回放依赖从臂订阅 `ArmJointState`，请先起从臂（示例）：
+关节流回放依赖从臂订阅 `ArmJointState`，请先启动从臂：
 
 ```bash
 source y1_ros2/install/setup.bash
@@ -110,13 +110,6 @@ ros2 launch y1_controller one_slave.launch.py
 ```bash
 cd /path/to/y1_teach_mode/teach_trajectory
 python3 joint_position_play_trajectory.py
-```
-
-末端轨迹回放默认话题为单机侧 `/y1/...`，请重新以 normal 模式启动机械臂（与 `normal_mode` 一致示例）：
-
-```bash
-source y1_ros2/install/setup.bash
-ros2 launch y1_controller single_arm_control.launch.py
 ```
 
 按末端位姿控制播放：
