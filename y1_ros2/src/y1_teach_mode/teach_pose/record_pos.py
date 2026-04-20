@@ -1,33 +1,73 @@
 #!/usr/bin/env python3
-import rospy, json, os
-from imeta_y1_msg.msg import ArmJointState
+import json
+import os
 
-joint_state = None
-def joint_state_callback(msg):
-    global joint_state
-    joint_state = msg
+import rclpy
+from rclpy.node import Node
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+
+from y1_msg.msg import ArmJointState
+
+
+class RecordPoseNode(Node):
+    def __init__(self):
+        super().__init__("record_pose")
+        self.declare_parameter("joint_state_topic", "/master_arm_right/joint_states")
+        self.declare_parameter("output_jsonl", "data/recorded_pos.jsonl")
+
+        topic = self.get_parameter("joint_state_topic").value
+        self._output = self.get_parameter("output_jsonl").value
+
+        qos = QoSProfile(
+            depth=10,
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.VOLATILE,
+        )
+        self._joint_state = None
+        self.create_subscription(ArmJointState, topic, self._joint_state_callback, qos)
+
+    def _joint_state_callback(self, msg: ArmJointState):
+        self._joint_state = msg
+
+    def spin_short(self):
+        rclpy.spin_once(self, timeout_sec=0.05)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = RecordPoseNode()
+    os.makedirs("data", exist_ok=True)
+
+    count = 1
+    with open(node._output, "a", encoding="utf-8") as f:
+        while rclpy.ok():
+            key = input(
+                "Input key [Enter] record pose, key [q] to stop recording: "
+            )
+            if key == "q":
+                break
+            node.spin_short()
+            if node._joint_state is not None:
+                js = node._joint_state
+                data = {
+                    "position": list(js.joint_position),
+                    "velocity": list(js.joint_velocity),
+                    "effort": list(js.joint_effort),
+                    "end_pose": list(js.end_pose),
+                }
+                f.write(json.dumps(data) + "\n")
+                f.flush()
+                node.get_logger().info(
+                    f"record {count}th pose, position: {data['position']} , end_pose: {data['end_pose']}"
+                )
+                count += 1
+            else:
+                node.get_logger().warn("No joint state received yet")
+
+    node.get_logger().info("record finish")
+    node.destroy_node()
+    rclpy.shutdown()
+
 
 if __name__ == "__main__":
-    rospy.init_node('record_pose', anonymous=True)
-    os.makedirs("data", exist_ok=True)
-    rospy.Subscriber("/master_arm_right/joint_states",
-                     ArmJointState, joint_state_callback, queue_size=1)
-    
-    count = 1
-    
-    with open("data/recorded_pos.jsonl", 'a') as f:
-      while input("Input key [Enter] record pose, key [q] to stop recording") != "q":
-          if joint_state is not None:
-            data = {
-                'position': list(joint_state.joint_position),
-                'velocity': list(joint_state.joint_velocity),
-                'effort': list(joint_state.joint_effort),
-                "end_pose": list(joint_state.end_pose),
-            }
-            f.write(json.dumps(data) + '\n')
-            print(f"record {count}th pose, position: {data['position']} , end_pose: {data['end_pose']}")
-            count += 1
-          else:
-            print("No receive joint state data")
-
-    print("record finish")
+    main()

@@ -11,3 +11,6 @@ y1_ros2/log/
 y1_ros2/*bag
 y1_ros2/.catkin_workspace
 y1_ros2/src/CMakeLists.txt
+y1_ros2/src/y1_teach_mode/normal_mode/__pycache__
+y1_ros2/src/y1_teach_mode/teach_pose/__pycache__
+y1_ros2/src/y1_teach_mode/teach_trajectory/__pycache__
