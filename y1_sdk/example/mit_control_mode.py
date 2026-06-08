@@ -58,12 +58,14 @@ if __name__ == "__main__":
         command.torque = torque
         return command
 
-    # 力矩控制: 只控制 J1, J2-J6 下发 0 力矩
+    # 力矩控制: 只控制 J1 和夹爪, J2-J6 下发 0 力矩
     torque_control_flag = True
     if torque_control_flag:
       time.sleep(3)
 
       j1_torque = 0.5  # J1 目标力矩, 单位: Nm. 请从小力矩开始测试
+      gripper_torque = 0.1  # 夹爪目标力矩, 正值张开, 负值闭合. 请从小力矩开始测试
+      has_gripper = arm_end_type in (1, 3)
       control_dt = 0.01  # MIT 控制命令下发周期, 0.01s = 100Hz
       control_time = 5.0  # 控制时长, 单位: s
       start_time = time.time()
@@ -78,10 +80,17 @@ if __name__ == "__main__":
             make_mit_command(),                  # J6 zero torque
         ]
         single_control_arm.MitControlArm(mit_command)
+
+        if has_gripper:
+            single_control_arm.MitControlGripper(make_mit_command(torque=gripper_torque))
         time.sleep(control_dt)
+
+        
 
       # 示例结束后下发一次 0 力矩, 避免继续保持上一帧力矩命令
       single_control_arm.MitControlArm([make_mit_command() for _ in range(6)])
+      if has_gripper:
+          single_control_arm.MitControlGripper(make_mit_command())
     
     
     # 获取关节数据
